@@ -1795,7 +1795,7 @@
 				});
 				// cookie saving on any edit of text boxes
 				this.element_id.forEach(id => {
-					document.getElementById(id).addEventListener('change', (e) => {
+					document.getElementById(id).addEventListener('input', (e) => {
 						Edit.saveDataInCookie();
 					});
 				});
