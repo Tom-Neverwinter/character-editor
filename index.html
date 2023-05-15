@@ -1793,7 +1793,7 @@
 
 					Edit.#showImage(Edit.#convertImage(image), e.target.files[0].name);
 				});
-
+				// cookie saving on any edit of text boxes
 				this.element_id.forEach(id => {
 					document.getElementById(id).addEventListener('change', (e) => {
 						Edit.saveDataInCookie();
