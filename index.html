@@ -128,7 +128,7 @@
 							<div class="accordion-body text-center p-0">
 								<div class="container">
 									<div class="row">
-										<div class="col-6 py-5 position-relative">
+										<div class="col-4 py-5 position-relative">
 											<form id="load-form">
 												<i class="bi bi-cloud-upload display-2 text-primary"></i>
 
@@ -139,12 +139,20 @@
 											</form>
 										</div>
 
-										<div class="col-6 py-5 position-relative border-start">
+										<div class="col-4 py-5 position-relative border-start">
 											<i class="bi bi-file-earmark-plus display-2 text-primary"></i>
 
 											<p class="my-2">Start from scratch and create a new character<br><br></p>
 
 											<button id="create" type="button" class="btn btn-primary stretched-link">New character</button>
+										</div>
+
+										<div class="col-4 py-5 position-relative border-start">
+											<i class="bi bi-file-earmark-plus display-2 text-primary"></i>
+
+											<p class="my-2">Restore your last character you worked on<br><br></p>
+
+											<button id="restore" type="button" class="btn btn-primary stretched-link">Restore</button>
 										</div>
 									</div>
 								</div>
@@ -1429,6 +1437,7 @@
 			#accordionElement = document.getElementById('accordion-load');
 			#loadButtonElement = document.getElementById('load');
 			#createButtonElement = document.getElementById('create');
+			#restoreButtonElement = document.getElementById('restore');
 
 			#dragStart() {
 				this.#accordionElement.classList.add('bg-drag');
@@ -1448,6 +1457,10 @@
 						file
 					}
 				}));
+			}
+
+			#restore() {
+				this.dispatchEvent(new CustomEvent('restore'));
 			}
 
 			constructor() {
@@ -1497,6 +1510,11 @@
 					if (!e.target.files || e.target.files.length < 1) return;
 
 					this.#load(e.target.files[0]);
+				});
+
+				// Restore character button
+				this.#restoreButtonElement.addEventListener('click', () => {
+					this.#restore();
 				});
 			}
 		}
@@ -1606,6 +1624,40 @@
 
 				// TODO: Move
 				document.getElementById('export-image').show(); // Show export image option
+			}
+
+			// cookies implementation
+			static saveDataInCookie() {
+				const data = {
+					name: Edit.name,
+					summary: Edit.summary,
+					personality: Edit.personality,
+					scenario: Edit.scenario,
+					greeting: Edit.greeting,
+					examples: Edit.examples
+				};
+				const cookieValue = JSON.stringify(data);
+				const expires = new Date();
+				// Set the cookie to expire in 30 days
+				expires.setDate(expires.getDate() + 30);
+				document.cookie = `editData=${cookieValue};expires=${expires.toUTCString()}`;
+			}
+
+			static loadDataFromCookie() {
+				const cookies = document.cookie.split(';');
+				for (const cookie of cookies) {
+					const [name, value] = cookie.split('=');
+					if (name.trim() === 'editData') {
+						const data = JSON.parse(decodeURIComponent(value));
+						Edit.#nameElement.value = data.name;
+						Edit.#summaryElement.value = data.summary;
+						Edit.#personalityElement.value = data.personality;
+						Edit.#scenarioElement.value = data.scenario;
+						Edit.#greetingElement.value = data.greeting;
+						Edit.#examplesElement.value = data.examples;
+						break;
+					}
+				}
 			}
 
 			load(source) {
@@ -1738,6 +1790,10 @@
 					const image = await Loader.image(URL.createObjectURL(e.target.files[0]));
 
 					Edit.#showImage(Edit.#convertImage(image), e.target.files[0].name);
+				});
+
+				document.getElementById('edit-name').addEventListener('change', (e) => {
+					Edit.saveDataInCookie();
 				});
 			}
 		}
@@ -1909,6 +1965,13 @@
 						Exception.show(ex);
 					}
 				}
+			});
+
+			// Restore character
+			load.addEventListener('restore', () => {
+				edit.load(new Source());
+				Edit.loadDataFromCookie();
+				TextareaAutoSize.update();
 			});
 		})();
 	</script>
