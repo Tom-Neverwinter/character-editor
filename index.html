@@ -1549,6 +1549,8 @@
 			static #caiCategoriesElement = document.getElementById('edit-metadata-cai-categories');
 			static #caiImageGenerationElement = document.getElementById('edit-metadata-cai-image-generation');
 
+			element_id = ['edit-name', 'edit-summary', 'edit-personality', 'edit-scenario', 'edit-greeting', 'edit-examples'];
+
 			static get name() {
 				return this.#nameElement.value.trim();
 			}
@@ -1792,8 +1794,10 @@
 					Edit.#showImage(Edit.#convertImage(image), e.target.files[0].name);
 				});
 
-				document.getElementById('edit-name').addEventListener('change', (e) => {
-					Edit.saveDataInCookie();
+				this.element_id.forEach(id => {
+					document.getElementById(id).addEventListener('change', (e) => {
+						Edit.saveDataInCookie();
+					});
 				});
 			}
 		}
