@@ -150,7 +150,7 @@
 										<div class="col-4 py-5 position-relative border-start">
 											<i class="bi bi-file-earmark-plus display-2 text-primary"></i>
 
-											<p class="my-2">Restore your last character you worked on<br><br></p>
+											<p class="my-2">Restore the last character you worked on<br><br></p>
 
 											<button id="restore" type="button" class="btn btn-primary stretched-link">Restore</button>
 										</div>
@@ -1977,6 +1977,7 @@
 				edit.load(new Source());
 				Edit.loadDataFromCookie();
 				TextareaAutoSize.update();
+				Tokenizer.update();
 			});
 		})();
 	</script>
