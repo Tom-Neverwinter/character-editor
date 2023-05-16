@@ -772,6 +772,7 @@
 
 			static ratio(width, height) {
 				return height == 0 ? width : Format.ratio(height, width % height);
+
 			}
 
 			static capitalize(text) {
@@ -1629,8 +1630,8 @@
 				document.getElementById('export-image').show(); // Show export image option
 			}
 
-			// cookies implementation
-			static saveDataInCookie() {
+			// Localstorage implementation
+			static saveDataInLocalStorage() {
 				const data = {
 					name: Edit.name,
 					summary: Edit.summary,
@@ -1639,27 +1640,108 @@
 					greeting: Edit.greeting,
 					examples: Edit.examples
 				};
-				const cookieValue = JSON.stringify(data);
-				const expires = new Date();
-				// Set the cookie to expire in 30 days
-				expires.setDate(expires.getDate() + 30);
-				document.cookie = `editData=${cookieValue};expires=${expires.toUTCString()}`;
+				const dataString = JSON.stringify(data);
+				localStorage.setItem('editData', dataString);
+
+				const image = document.getElementById('edit-image');	// image save
+
+				// Convert the image to a data URL
+				const canvas = document.createElement('canvas');
+				const context = canvas.getContext('2d');
+				canvas.width = image.naturalWidth;
+				canvas.height = image.naturalHeight;
+				context.drawImage(image, 0, 0);
+				const dataURL = canvas.toDataURL(); // This will contain the image data in base64 format
+
+				// Save the data URL to localStorage
+				localStorage.setItem('imageData', dataURL);
+
+				console.log(this.#originalModifiedElement.getAttribute('datetime'));
+
+																	// Localstorage metadata save
+				const metadata = {
+					name: this.#originalNameElement.textContent,
+					format: this.#originalFormatElement.textContent,
+					tokens: this.#originalTokensElement.textContent,
+					size: this.#originalSizeElement.textContent,
+					modified: this.#originalModifiedElement.getAttribute('datetime'),
+					width: image.naturalWidth,
+					height: image.naturalHeight,
+
+
+					// name: image.file.name,
+					//
+					// format: image.formats.join('<br>'),
+					//
+					// tokens: `${image.character.tokens.toLocaleString()} total`,
+					//
+					// size: Format.bytes(image.file.size),
+					//
+					// modified: Format.ago(image.file.lastModified),
+
+				};
+				const metadataString = JSON.stringify(metadata);
+				localStorage.setItem('metaData', metadataString);
+
+				console.log(metadata);
+
+
+
+
+
+				// const reader = new FileReader();
+				// reader.addEventListener('load', () => {
+				// 	// Save the Base64 encoded image data to LocalStorage
+				// 	localStorage.setItem('imageData', reader.result);
+				// 	//image.src = reader.result;
+				// });
+
+
+				//reader.readAsDataURL(source.file);
 			}
 
-			static loadDataFromCookie() {
-				const cookies = document.cookie.split(';');
-				for (const cookie of cookies) {
-					const [name, value] = cookie.split('=');
-					if (name.trim() === 'editData') {
-						const data = JSON.parse(decodeURIComponent(value));
-						Edit.#nameElement.value = data.name;
-						Edit.#summaryElement.value = data.summary;
-						Edit.#personalityElement.value = data.personality;
-						Edit.#scenarioElement.value = data.scenario;
-						Edit.#greetingElement.value = data.greeting;
-						Edit.#examplesElement.value = data.examples;
-						break;
-					}
+			static loadDataFromLocalStorage() {
+				const dataString = localStorage.getItem('editData');
+				const metaData = localStorage.getItem('metaData');
+				const imageData = localStorage.getItem('imageData');
+				const imageInput = document.getElementById('edit-image');
+
+				if (dataString) {
+					const data = JSON.parse(dataString);
+					Edit.#nameElement.value = data.name;
+					Edit.#summaryElement.value = data.summary;
+					Edit.#personalityElement.value = data.personality;
+					Edit.#scenarioElement.value = data.scenario;
+					Edit.#greetingElement.value = data.greeting;
+					Edit.#examplesElement.value = data.examples;
+				}
+				if (imageData) {
+					Edit.#imagePlaceholderElement.hide();
+					imageInput.src = imageData;
+					Edit.#imageElement.show();
+					document.getElementById('export-image').show();
+
+					//this.#showImage(imageData)
+				}
+
+
+				if (metaData) {
+					const data = JSON.parse(metaData);
+					Edit.#originalNameElement.innerText = data.name;
+
+					Edit.#originalFormatElement.innerHTML = data.format;
+
+					Edit.#originalTokensElement.innerText = data.tokens;
+
+					Edit.#originalSizeElement.innerText = data.size;
+
+					Edit.#originalModifiedElement.innerText = data.modified;
+
+					const ar = Format.ratio(data.width, data.height);
+					Edit.#imageDetailsElement.innerText = `${data.width} x ${data.height}px (${data.width / ar}:${data.height / ar})`;
+
+					Edit.#imageDetailsElement.show();
+					Edit.#originalContainerElement.show();
 				}
 			}
 
@@ -1671,7 +1753,9 @@
 					Edit.#caiWarningElement.show();
 				}
 
-				if (source.image) Edit.#showImage(source.image, source.file.name);
+				if (source.image) {
+					Edit.#showImage(source.image, source.file.name);
+				}
 
 				if (source.file) {
 					Edit.#originalNameElement.innerText = source.file.name;
@@ -1681,6 +1765,8 @@
 					Edit.#originalTokensElement.innerText = `${source.character.tokens.toLocaleString()} total`;
 
 					Edit.#originalSizeElement.innerText = Format.bytes(source.file.size);
+
+					console.log(source.file.lastModified);
 
 					Edit.#originalModifiedElement.innerText = Format.ago(source.file.lastModified);
 					Edit.#originalModifiedElement.setAttribute('datetime', new Date(source.file.lastModified).toISOString());
@@ -1794,12 +1880,18 @@
 
 					Edit.#showImage(Edit.#convertImage(image), e.target.files[0].name);
 				});
-				// cookie saving on any edit of text boxes
-				this.element_id.forEach(id => {
-					document.getElementById(id).addEventListener('input', (e) => {
-						Edit.saveDataInCookie();
-					});
+
+				// Localstorage saving on closing the window
+				window.addEventListener('beforeunload', (e) => {
+					Edit.saveDataInLocalStorage();
 				});
+
+				// old update version
+				// this.element_id.forEach(id => {
+				// 	document.getElementById(id).addEventListener('change', (e) => {
+				// 		Edit.saveDataInLocalStorage();
+				// 	});
+				// });
 			}
 		}
 
@@ -1975,7 +2067,7 @@
 			// Restore character
 			load.addEventListener('restore', () => {
 				edit.load(new Source());
-				Edit.loadDataFromCookie();
+				Edit.loadDataFromLocalStorage();
 				TextareaAutoSize.update();
 				Tokenizer.update();
 			});
