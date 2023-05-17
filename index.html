@@ -1450,6 +1450,7 @@
 			}
 
 			#create() {
+				Edit.saveDataInLocalStorage();		// Localstorage saving your current work when you create new character (by AliCat)
 				this.dispatchEvent(new CustomEvent('create'));
 			}
 
@@ -1550,8 +1551,6 @@
 			static #caiInteractionsElement = document.getElementById('edit-metadata-cai-interactions');
 			static #caiCategoriesElement = document.getElementById('edit-metadata-cai-categories');
 			static #caiImageGenerationElement = document.getElementById('edit-metadata-cai-image-generation');
-
-			element_id = ['edit-name', 'edit-summary', 'edit-personality', 'edit-scenario', 'edit-greeting', 'edit-examples'];
 
 			static get name() {
 				return this.#nameElement.value.trim();
