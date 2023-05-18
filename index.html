@@ -1643,6 +1643,7 @@
 				localStorage.setItem('editData', dataString);
 
 				const image = document.getElementById('edit-image');	// image save
+				image.src = document.getElementById('edit-image').src;
 
 				// Convert the image to a data URL
 				const canvas = document.createElement('canvas');
@@ -1651,7 +1652,6 @@
 				canvas.height = image.naturalHeight;
 				context.drawImage(image, 0, 0);
 				const dataURL = canvas.toDataURL(); // This will contain the image data in base64 format
-
 				// Save the data URL to localStorage
 				localStorage.setItem('imageData', dataURL);
 
