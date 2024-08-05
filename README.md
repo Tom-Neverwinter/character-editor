@@ -2,7 +2,7 @@
 
 > Create, edit and convert to and from popular AI character formats easily
 
-### [Use AI Character Editor online](https://avakson.github.io/character-editor/)
+### [Use AI Character Editor online](https://Tom-Neverwinter.github.io/character-editor/)
 
 ## Features
 - Simple and easy to use interface
